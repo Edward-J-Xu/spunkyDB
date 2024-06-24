@@ -1,0 +1,39 @@
+# Remove Qt-specific configuration
+CONFIG -= qt
+
+# Define project as a static library
+TEMPLATE = lib
+CONFIG += staticlib
+
+# Enable C++17 standard
+CONFIG += c++17
+
+# Set macOS deployment target version
+QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
+
+# Emit warnings for deprecated Qt features
+DEFINES += QT_DEPRECATED_WARNINGS
+
+# Uncomment the following line to disable deprecated APIs up to a certain version of Qt
+#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all APIs deprecated before Qt 6.0.0
+
+# Source files
+SOURCES += \
+    database.cpp \
+    spunkydbdb.cpp
+
+# Header files
+HEADERS += \
+    database.h \
+    spunkydbdb.h
+
+# Default rules for deployment on Unix systems
+unix {
+    target.path = $$[QT_INSTALL_PLUGINS]/generic
+}
+# Add the target path to INSTALLS if it's not empty
+!isEmpty(target.path): INSTALLS += target
+
+# Additional files to be included in the distribution
+DISTFILES += \
+    Defines.pri

@@ -1,0 +1,17 @@
+TEMPLATE = subdirs
+
+SUBDIRS += \
+    spunkydb \
+    spunkydb-cli \
+    spunkydb-tests
+
+spunkydb-tests.depends = spunkydb
+spunkydb-cli.depends = spunkydb
+
+CONFIG += console c++17
+CONFIG -= app_bundle
+CONFIG -= qt
+
+SOURCES +=
+
+HEADERS +=

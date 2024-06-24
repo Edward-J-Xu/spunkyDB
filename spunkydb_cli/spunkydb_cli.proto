@@ -1,0 +1,27 @@
+# Set the template to "app" to specify the type of project
+TEMPLATE = app
+
+# Include console and C++17 support
+CONFIG += console c++17
+
+# Exclude app_bundle and Qt support
+CONFIG -= app_bundle
+CONFIG -= qt
+
+# Set the deployment target for macOS
+QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
+
+# Specify the source files
+SOURCES += \
+    main.cpp
+
+# Include additional project-specific definitions
+include(../spunkydb/Defines.pri)
+
+# Link against the spunkydb library depending on the build configuration
+macx:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../spunkydb/ -lspunkydb
+else:macx:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../spunkydb/ -lspunkydb
+
+# Specify the header files
+HEADERS += \
+    cxxopts.hpp
