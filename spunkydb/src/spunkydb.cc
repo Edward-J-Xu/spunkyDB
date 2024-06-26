@@ -1,5 +1,7 @@
 #include "spunkydb.h"
 
+using namespace spunkydb;
+
 SpunkyDB::SpunkyDB() {
     ;
 }

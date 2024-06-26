@@ -5,7 +5,7 @@
 TEST_CASE("Store and retrieve a value", "[setKeyValue, getKeyValue]") {
     SECTION("Basic Set and Get") {
         std::string dbname("myemptydb");
-        Database db(SpunkyDB::createEmptyDB(dbname));
+        spunkydb::Database db(spunkydb::SpunkyDB::createEmptyDB(dbname));
         
         // We know we have been successful when:-
         // 1. The retrieved value is the same as the stored value

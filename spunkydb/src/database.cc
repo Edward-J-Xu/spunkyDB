@@ -4,6 +4,8 @@
 #include <fstream>
 #include <filesystem>
 
+using namespace spunkydb;
+
 namespace fs = std::filesystem;
 
 Database::Database(std::string dbname, std::string dbpath) : m_dbname(dbname), m_dbpath(dbpath) {}

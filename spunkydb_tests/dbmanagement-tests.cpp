@@ -10,7 +10,7 @@ namespace fs = std::filesystem;
 TEST_CASE("Create an empty database", "[createEmptyDB]") {
     SECTION("Default settings") {
         std::string dbname = "myemptydb";
-        Database db(SpunkyDB::createEmptyDB(dbname));
+        spunkydb::Database db(spunkydb::SpunkyDB::createEmptyDB(dbname));
 
         // We know we have been successful when:-
         // 1. We have a valid database reference returned
@@ -30,9 +30,9 @@ TEST_CASE("Create an empty database", "[createEmptyDB]") {
 TEST_CASE("Load an existing database", "[loadDB]") {
     SECTION("Default settings") {
         std::string dbname = "myemptydb";
-        Database db(SpunkyDB::createEmptyDB(dbname));
+        spunkydb::Database db(spunkydb::SpunkyDB::createEmptyDB(dbname));
         
-        Database db2(SpunkyDB::loadDB(dbname));
+        spunkydb::Database db2(spunkydb::SpunkyDB::loadDB(dbname));
 
         // We know we have been successful when:-
         // 1. We have a valid database reference returned

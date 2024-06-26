@@ -5,6 +5,8 @@
 
 using namespace std;
 
+using namespace spunkydb;
+
 cxxopts::Options options("SpunkyDB-CLI", "SpunkyDB Command Line Interface");
 
 void printUsage() {

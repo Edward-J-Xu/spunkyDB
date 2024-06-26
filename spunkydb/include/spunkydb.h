@@ -5,12 +5,16 @@
 
 #include "database.h"
 
-class SpunkyDB {
-public:
-    SpunkyDB();
+namespace spunkydb {
 
-    static Database createEmptyDB(std::string& dbname);
-    static Database loadDB(std::string& dbname);
-};
+    class SpunkyDB {
+    public:
+        SpunkyDB();
+
+        static Database createEmptyDB(std::string& dbname);
+        static Database loadDB(std::string& dbname);
+    };
+
+}
 
 #endif
