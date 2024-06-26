@@ -19,13 +19,16 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 # Source files
 SOURCES += \
-    database.cpp \
-    spunkydbdb.cpp
+    src/database.cpp \
+    src/spunkydbdb.cpp
 
 # Header files
 HEADERS += \
-    database.h \
-    spunkydbdb.h
+    spunkydb.h \
+    include/database.h \
+    include/spunkydbdb.h
+
+INCLUDEPATH += include
 
 # Default rules for deployment on Unix systems
 unix {
