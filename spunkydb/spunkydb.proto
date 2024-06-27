@@ -26,6 +26,7 @@ SOURCES += \
 HEADERS += \
     spunkydb.h \
     include/database.h \
+    include/extensions/extdatabase.h \
     include/spunkydbdb.h
 
 INCLUDEPATH += include

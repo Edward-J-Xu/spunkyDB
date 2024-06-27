@@ -5,26 +5,22 @@
 
 namespace spunkydb {
 
-    class Database {
+    class IDatabase {
     public:
-        Database(std::string dbname, std::string dbpath);
+        IDatabase() = default;
 
-        std::string getDirectory();
+        virtual ~IDatabase() = default;
 
+        virtual std::string getDirectory() = 0;
         // Key-Value Functions
-        void setKeyValue(std::string key, std::string value);
-        std::string getKeyValue(std::string key);
+        virtual void setKeyValue(std::string key, std::string value) = 0;
+        virtual std::string getKeyValue(std::string key) = 0;
 
         // Management Functions
-        static Database createEmpty(std::string dbname);
-        static Database load(std::string dbname);
+        static const std::unique_ptr<IDatabase> createEmpty(std::string dbname);
+        static std::unique_ptr<IDatabase> load(std::string dbname);
         
-        void destroy();
-
-    protected:
-        std::string m_dbname;
-        std::string m_dbpath;
-        // TODO std::pointer<DatabaseImpl> pImpl; // C++10 PIMPL IDIOM for forward binary compatibility
+        virtual void destroy() = 0;
     };
 
 }
