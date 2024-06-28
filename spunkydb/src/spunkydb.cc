@@ -1,16 +1,19 @@
 #include "spunkydb.h"
+#include "extensions/extdatabase.h"
 
 using namespace spunkydb;
+using namespace spunkydbext;
+
 
 SpunkyDB::SpunkyDB() {
     ;
 }
 
-Database SpunkyDB::createEmptyDB(std::string &dbname) {
-    return Database::createEmpty(dbname);
+std::unique_ptr<IDatabase> SpunkyDB::createEmptyDB(std::string &dbname) {
+    return EmbeddedDatabase::createEmpty(dbname);
 }
 
-Database SpunkyDB::loadDB(std::string &dbname) {
-    return Database::load(dbname);
+std::unique_ptr<IDatabase> SpunkyDB::loadDB(std::string &dbname) {
+    return EmbeddedDatabase::load(dbname);
 }
 

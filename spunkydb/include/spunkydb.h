@@ -2,6 +2,7 @@
 #define SPUNKYDB_H
 
 #include <string>
+#include <memory>
 
 // WARNING: This should ONLY include Client API files
 // i.e. NOT anything within include/extensions!
