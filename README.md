@@ -33,4 +33,3 @@ While there's no strict roadmap, there are a few design principles I plan to fol
 - Cloud ready: Will support both scale-out and scale-up configurations to suit your needs, and will be compatible with Kubernetes (when I get around to it).
 - Staying current: Will keep up with the latest developments in modern C++ specifications and database theory.
 - Configurable for diverse needs: From single-threaded embedded use cases to web-scale applications 😉, supporting everything from eventually consistent high-speed operations to ACID-compliant high durability.
-
