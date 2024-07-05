@@ -30,11 +30,16 @@ public:
 private:
     std::string m_dbname;
     std::string m_dbpath;
+    // 1. add an in-memory map here
 };
 
-EmbeddedDatabase::Impl::Impl(std::string dbname, std::string dbpath) : m_dbname(dbname), m_dbpath(dbpath) {}
+EmbeddedDatabase::Impl::Impl(std::string dbname, std::string dbpath) : m_dbname(dbname), m_dbpath(dbpath) {
+    // 2. load all keys from disc to our in-memory map here
+}
 
-EmbeddedDatabase::Impl::~Impl() {}
+EmbeddedDatabase::Impl::~Impl() {
+    // Z. [Optional] Flush the latest known state to disk here
+}
 
 // Management functions
 const std::unique_ptr<IDatabase> EmbeddedDatabase::Impl::createEmpty(std::string dbname) {
@@ -61,6 +66,7 @@ void EmbeddedDatabase::Impl::destroy() {
     if (fs::exists(m_dbpath)) {
         fs::remove_all(m_dbpath);
     }
+    // 3. Don't forget to clear the in-memory map here
 }
 
 
@@ -75,9 +81,13 @@ void EmbeddedDatabase::Impl::setKeyValue(std::string key, std::string value) {
     os.open(m_dbpath + "/" + key + "_string.kv", std::ios::out | std::ios::trunc);
     os << value;
     os.close();
+    // 4. Also write to our in-memory map here
+    // Storage Mechanism Paradigm: Strongly Consistent
+    // If we didn't flush it here but say every minute, it is Eventually Consistent
 }
 
 std::string EmbeddedDatabase::Impl::getKeyValue(std::string key) {
+    // 5. Only ever read from our in-memory map here
     std::ifstream is(m_dbpath + "/" + key + "_string.kv");
     std::string value;
 

@@ -3,7 +3,8 @@ TEMPLATE = subdirs
 SUBDIRS += \
     spunkydb \
     spunkydb-cli \
-    spunkydb-tests
+    spunkydb-tests \
+    samples/hashing-benefits
 
 spunkydb-tests.depends = spunkydb
 spunkydb-cli.depends = spunkydb

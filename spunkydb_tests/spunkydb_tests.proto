@@ -14,7 +14,8 @@ QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
 # Specify the source files
 SOURCES += \
         dbmanagement-tests.cpp \
-        keyvalue-tests.cpp
+        keyvalue-tests.cpp \
+        performance-tests.cpp
 
 # Include additional project-specific definitions
 include(../spunkydb/Defines.pri)
