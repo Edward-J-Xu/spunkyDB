@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <unordered_map>
 
 using namespace spunkydb;
 using namespace spunkydbext;
@@ -30,11 +31,31 @@ public:
 private:
     std::string m_dbname;
     std::string m_dbpath;
-    // 1. add an in-memory map here
+    std::unordered_map<std::string, std::string> m_keyValueStore;
 };
 
 EmbeddedDatabase::Impl::Impl(std::string dbname, std::string dbpath) : m_dbname(dbname), m_dbpath(dbpath) {
-    // 2. load all keys from disc to our in-memory map here
+    // load any files with .kv in their name
+    for (auto& p : fs::directory_iterator(m_dbpath)) {
+        if (p.exists() && p.is_regular_file()) {
+            if (p.path().extension() == ".kv") {
+                std::string keyWithString = p.path().filename();
+                // ASSUMPTION always ends with _string.kv
+                std::string key = keyWithString.substr(0,keyWithString.length() - 10); // DANGEROUS!!!
+
+                std::ifstream ifs(p.path());
+                std::string value;
+
+                t.seekg(0, std::ios::end);
+                value.reserve(t.tellg());
+                t.seekg(0, std::ios::beg);
+
+                value.assign((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+                m_keyValueStore.insert({key, value});
+            }
+        }
+    }
+
 }
 
 EmbeddedDatabase::Impl::~Impl() {
@@ -66,7 +87,7 @@ void EmbeddedDatabase::Impl::destroy() {
     if (fs::exists(m_dbpath)) {
         fs::remove_all(m_dbpath);
     }
-    // 3. Don't forget to clear the in-memory map here
+    m_keyValueStore.clear();
 }
 
 
@@ -81,13 +102,21 @@ void EmbeddedDatabase::Impl::setKeyValue(std::string key, std::string value) {
     os.open(m_dbpath + "/" + key + "_string.kv", std::ios::out | std::ios::trunc);
     os << value;
     os.close();
-    // 4. Also write to our in-memory map here
+    // Also write to our in-memory unordered map
+    m_keyValueStore.insert({key, value});
     // Storage Mechanism Paradigm: Strongly Consistent
     // If we didn't flush it here but say every minute, it is Eventually Consistent
 }
 
 std::string EmbeddedDatabase::Impl::getKeyValue(std::string key) {
-    // 5. Only ever read from our in-memory map here
+    // Only ever read from our in memory map!
+    const auto& value = m_keyValueStore.find(key);
+    if (value != m_keyValueStore.end()) {
+        return ""; // DANGEROUS! Should be 'not found'. TODO error handling.
+    }
+    return value->second;
+
+/*
     std::ifstream is(m_dbpath + "/" + key + "_string.kv");
     std::string value;
 
@@ -98,6 +127,7 @@ std::string EmbeddedDatabase::Impl::getKeyValue(std::string key) {
     value.assign((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
 
     return value;
+*/
 }
 
 
