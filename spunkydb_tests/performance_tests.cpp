@@ -78,4 +78,5 @@ TEST_CASE("Measure basic performance", "[setKeyValue, getKeyValue]") {
         std::cout << "Tests complete" << std::endl;
         db->destroy();
     }
+    // Now do the same for pure disc backed storage
 }
