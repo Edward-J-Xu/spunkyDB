@@ -15,6 +15,7 @@ namespace fs = std::filesystem;
 class EmbeddedDatabase::Impl : public IDatabase {
 public:
     Impl(std::string dbname, std::string dbpath);
+    Impl(std::string dbname, std::string fullpath, std::unique_ptr<KeyValueStore>& kvStore);
     ~Impl();
 
     std::string getDirectory();
@@ -25,37 +26,26 @@ public:
 
     // Management functions
     static const std::unique_ptr<IDatabase> createEmpty(std::string dbname);
+    static const std::unique_ptr<IDatabase> createEmpty(std::string dbname, std::unique_ptr<KeyValueStore>& kvStore);
     static std::unique_ptr<IDatabase> load(std::string dbname);
     void destroy();
 
 private:
     std::string m_dbname;
     std::string m_dbpath;
-    std::unordered_map<std::string, std::string> m_keyValueStore;
+    std::unique_ptr<KeyValueStore> m_keyValueStore;
 };
 
 EmbeddedDatabase::Impl::Impl(std::string dbname, std::string dbpath) : m_dbname(dbname), m_dbpath(dbpath) {
-    // load any files with .kv in their name
-    for (auto& p : fs::directory_iterator(m_dbpath)) {
-        if (p.exists() && p.is_regular_file()) {
-            if (p.path().extension() == ".kv") {
-                std::string keyWithString = p.path().filename();
-                // ASSUMPTION always ends with _string.kv
-                std::string key = keyWithString.substr(0,keyWithString.length() - 10); // DANGEROUS!!!
+    // Explicitly specify base type so it matches the make_unique expected class (KeyValueStore)
+    std::unique_ptr<KeyValueStore> fileStore = std::make_unique<MemoryKeyValueStore> (dbpath);
+    std::unique_ptr<KeyValueStore> memoryStore = std::make_unique<MemoryKeyValueStore> (fileStore);
+    m_keyValueStore = std::move(memoryStore);
+}
 
-                std::ifstream ifs(p.path());
-                std::string value;
-
-                t.seekg(0, std::ios::end);
-                value.reserve(t.tellg());
-                t.seekg(0, std::ios::beg);
-
-                value.assign((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-                m_keyValueStore.insert({key, value});
-            }
-        }
-    }
-
+EmbeddedDatabase::Impl::Impl(std::string dbname, std::string dbpath, std::unique_ptr<KeyValueStore>& kvStore) 
+    : m_dbname(dbname), m_dbpath(dbpath), m_keyValueStore(kvStore.release()) {
+    ;
 }
 
 EmbeddedDatabase::Impl::~Impl() {
@@ -70,11 +60,17 @@ const std::unique_ptr<IDatabase> EmbeddedDatabase::Impl::createEmpty(std::string
     }
 
     std::string dbfolder(basedir + "/" + dbname);
-    if (!fs::exists(dbfolder)) {
-        fs::create_directory(dbfolder);
-    }
 
     return std::make_unique<EmbeddedDatabase::Impl>(dbname, dbfolder);
+}
+
+const std::unique_ptr<IDatabase> EmbeddedDatabase::Impl::createEmpty(std::string dbname, std::unique_ptr<KeyValueStore>& kvStore) {
+    std::string basedir(".spunkydb");
+    if (!fs::exists(basedir)) {
+        fs::create_directory(basedir);
+    }
+    std::string dbfolder(basedir + "/" + dbname);
+    return std::make_unique<EmbeddedDatabase::Impl>(dbname, dbfolder, kvStore);
 }
 
 const std::unique_ptr<IDatabase> EmbeddedDatabase::Impl::load(std::string dbname) {
@@ -84,10 +80,7 @@ const std::unique_ptr<IDatabase> EmbeddedDatabase::Impl::load(std::string dbname
 }
 
 void EmbeddedDatabase::Impl::destroy() {
-    if (fs::exists(m_dbpath)) {
-        fs::remove_all(m_dbpath);
-    }
-    m_keyValueStore.clear();
+    m_keyValueStore->clear();
 }
 
 
@@ -98,36 +91,11 @@ std::string EmbeddedDatabase::Impl::getDirectory() {
 }
 
 void EmbeddedDatabase::Impl::setKeyValue(std::string key, std::string value) {
-    std::ofstream os;
-    os.open(m_dbpath + "/" + key + "_string.kv", std::ios::out | std::ios::trunc);
-    os << value;
-    os.close();
-    // Also write to our in-memory unordered map
-    m_keyValueStore.insert({key, value});
-    // Storage Mechanism Paradigm: Strongly Consistent
-    // If we didn't flush it here but say every minute, it is Eventually Consistent
+    m_keyValueStore->setKeyValue(key, value);
 }
 
 std::string EmbeddedDatabase::Impl::getKeyValue(std::string key) {
-    // Only ever read from our in memory map!
-    const auto& value = m_keyValueStore.find(key);
-    if (value != m_keyValueStore.end()) {
-        return ""; // DANGEROUS! Should be 'not found'. TODO error handling.
-    }
-    return value->second;
-
-/*
-    std::ifstream is(m_dbpath + "/" + key + "_string.kv");
-    std::string value;
-
-    is.seekg(0, std::ios::end);
-    value.reserve(is.tellg());
-    is.seekg(0, std::ios::beg);
-
-    value.assign((std::istreambuf_iterator<char>(is)), std::istreambuf_iterator<char>());
-
-    return value;
-*/
+    return m_keyValueStore->getKeyValue(key);
 }
 
 
@@ -140,12 +108,22 @@ EmbeddedDatabase::EmbeddedDatabase(std::string dbname)
     ;
 }
 
+EmbeddedDatabase::EmbeddedDatabase(std::string dbname, std::string fullpath,
+                                   std::unique_ptr<KeyValueStore>& kvStore)
+    : mImpl(std::make_unique<EmbeddedDatabase::Impl>(dbname, fullpath, kvStore)) {
+    ;
+}
+
 EmbeddedDatabase::~EmbeddedDatabase() {
     ;
 }
 
 const std::unique_ptr<IDatabase> EmbeddedDatabase::createEmpty(std::string dbname) {
     return EmbeddedDatabase::Impl::createEmpty(dbname);
+}
+
+const std::unique_ptr<IDatabase> EmbeddedDatabase::createEmpty(std::string dbname, std::unique_ptr<KeyValueStore>& kvStore) {
+  return EmbeddedDatabase::Impl::createEmpty(dbname, kvStore);
 }
 
 const std::unique_ptr<IDatabase> EmbeddedDatabase::load(std::string dbname) {
