@@ -1,6 +1,7 @@
 #define CATCH_CONFIG_ENABLE_BENCHMARKING 1
 #include "catch.hpp"
 #include "../spunkydb/spunkydb.h"
+#include "../spunkydb/spunkydbext.h"
 
 #include <iostream>
 #include <chrono>
@@ -78,5 +79,104 @@ TEST_CASE("Measure basic performance", "[setKeyValue, getKeyValue]") {
         std::cout << "Tests complete" << std::endl;
         db->destroy();
     }
+
+    SECTION("Store and Retrieve 100 000 keys - In-memory key-value store") {
+        std::string dbname("myemptydb");
+        std::unique_ptr<spunkydb::KeyValueStore> memoryStore = std::make_unique<spunkydbext::MemoryKeyValueStore>();
+        std::unique_ptr<spunkydb::IDatabase> db(spunkydb::SpunkyDB::createEmptyDB(dbname, memoryStore));
+
+        int total = 100000;
+        
+        // 1. Pre-generate the keys and values in memory (so we don't skew the test)
+        std::unordered_map<std::string, std::string> keyValues;
+        for (int i = 0; i < total; i++) {
+            keyValues.emplace(std::to_string(i), std::to_string(i)); // C++11, uses std::forward
+        }
+        std::cout << "Key size is max " << std::to_string(total - 1).length() << " bytes" << std::endl;
+
+        // 2. Store 100 000 key-value pairs (no overlap)
+        // Raw storage speed
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        for (auto it = keyValues.begin(); it != keyValues.end(); it++) {
+            db->setKeyValue(it->first, it->second);
+        }
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::cout << "  " << keyValues.size() << " completed in " 
+            << (std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() / 1000000.0) 
+            << " seconds" << std::endl;
+        std::cout << "  "
+            << (keyValues.size() * 1000000.0 / std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())
+            << " requests per second" << std::endl;
+        std::cout << std::endl;
+
+        // 3. Retrieve 100 000 key-value pairs (no overlap)
+        // Raw retrieval speed
+        std::string aString("blank");
+        std::string& result(aString);
+        begin = std::chrono::steady_clock::now();
+        for (auto it = keyValues.begin(); it != keyValues.end(); it++) {
+            result = db->getKeyValue(it->first);
+        }
+        end = std::chrono::steady_clock::now();
+        std::cout << "  " << keyValues.size() << " completed in "
+            << (std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() / 1000000.0)
+            << " seconds" << std::endl;
+        std::cout << "  "
+            << (keyValues.size() * 1000000.0 / std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())
+            << " requests per second" << std::endl;
+        
+        // 7. Tear down
+        db->destroy();
+    }
+
     // Now do the same for pure disc backed storage
+    SECTION("Store and Retrieve 100 000 keys - File based key-value store") {
+        std::string dbname("myemptydb");
+        std::string fullpath = ".spunkydb/" + dbname;
+        std::unique_ptr<spunkydb::KeyValueStore> memoryStore = std::make_unique<spunkydbext::FileKeyValueStore>(fullpath);
+        std::unique_ptr<spunkydb::IDatabase> db(spunkydb::SpunkyDB::createEmptyDB(dbname, memoryStore));
+
+        int total = 100000;
+
+        // 1. Pre-generate the keys and values in memory (so we don't skew the test)
+        std::unordered_map<std::string, std::string> keyValues;
+        for (int i = 0; i < total; i++) {
+            keyValues.emplace(std::to_string(i), std::to_string(i)); // C++11 uses std::forward
+        }
+        std::cout << "Key size is max " << std::to_string(total - 1).length() << " bytes" << std::endl;
+
+        // 2. Store 100 000 key-value pairs (no overlap)
+        // Raw storage speed
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        for (auto it = keyValues.begin(); it != keyValues.end(); it++) {
+            db->setKeyValue(it->first, it->second);
+        }
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::cout << "  " << keyValues.size() << " completed in "
+            << (std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() / 1000000.0)
+            << " seconds" << std::endl;
+        std::cout << "  "
+            << (keyValues.size() * 1000000.0 / std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())
+            << " requests per second" << std::endl;
+        std::cout << std::endl;
+
+        // 3. Retrieve 100 000 key-value pairs (no overlap)
+        // Raw retrieval speed
+        std::string aString("blank");
+        std::string& result(aString);
+        begin = std::chrono::steady_clock::now();
+        for (auto it = keyValues.begin(); it != keyValues.end(); it++) {
+            result = db->getKeyValue(it->first);
+        }
+        end = std::chrono::steady_clock::now();
+        std::cout << "  " << keyValues.size() << " completed in "
+            << (std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() / 1000000.0)
+            << " seconds" << std::endl;
+        std::cout << "  "
+            << (keyValues.size() * 1000000.0 / std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())
+            << " requests per second" << std::endl;
+
+        // 4. Tear down
+        db->destroy();
+    }
 }

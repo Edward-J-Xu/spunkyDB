@@ -20,11 +20,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # Source files
 SOURCES += \
     src/database.cpp \
-    src/spunkydbdb.cpp
+    src/filekeyvaluestore.cpp \
+    src/spunkydb.cpp \
+    src/memorykeyvaluestore.cpp
 
 # Header files
 HEADERS += \
     spunkydb.h \
+    spunkydbext.h \
     include/database.h \
     include/extensions/extdatabase.h \
     include/spunkydbdb.h
