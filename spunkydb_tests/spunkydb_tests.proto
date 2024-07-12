@@ -14,6 +14,7 @@ QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
 # Specify the source files
 SOURCES += \
         dbmanagement-tests.cpp \
+        hashing-tests.cpp \
         keyvalue-tests.cpp \
         performance-tests.cpp
 
@@ -28,3 +29,7 @@ else:macx:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../spunkydb/ -lspunk
 HEADERS += \
     catch.hpp \
     tests.h
+
+HH = ../../highwayhash
+
+INCLUDEPATH += include $${HH}

@@ -22,6 +22,7 @@ SOURCES += \
     src/database.cpp \
     src/filekeyvaluestore.cpp \
     src/spunkydb.cpp \
+    src/highwayhash.cpp \
     src/memorykeyvaluestore.cpp
 
 # Header files
@@ -30,9 +31,14 @@ HEADERS += \
     spunkydbext.h \
     include/database.h \
     include/extensions/extdatabase.h \
+    include/extensions/highwayhash.h \
     include/spunkydbdb.h
 
-INCLUDEPATH += include
+HH = ../../highwayhash
+
+INCLUDEPATH += include $${HH}
+
+LIBS += -L$${HH}/lib -lhighwayhash
 
 # Default rules for deployment on Unix systems
 unix {
