@@ -11,6 +11,8 @@ CONFIG -= qt
 # Set the deployment target for macOS
 QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
 
+QMAKE_CXXFLAGS += -O2 -fPIC
+
 # Specify the source files
 SOURCES += \
         dbmanagement-tests.cpp \

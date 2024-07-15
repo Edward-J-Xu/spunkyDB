@@ -18,7 +18,11 @@ public:
 
     // Key-Value User Functions
     void setKeyValue(std::string key, std::string value);
+    void setKeyValue(std::string key, std::string value, std::string bucket);
+    void setKeyValue(std::string key, std::unordered_set<std::string> value);
+
     std::string getKeyValue(std::string key);
+    std::unique_ptr<std::unordered_set<std::string>> getKeyValueSet(std::string key);
 
     // Key-Value Management Functions
     void loadKeysInto(std::function<void(std::string key, std::string value)> callback);
@@ -36,7 +40,11 @@ public:
 
     // Key-Value User Functions
     void setKeyValue(std::string key, std::string value);
+    void setKeyValue(std::string key, std::string value, std::string bucket);
+    void setKeyValue(std::string key, std::unordered_set<std::string> value);
+
     std::string getKeyValue(std::string key);
+    std::unique_ptr<std::unordered_set<std::string>> getKeyValueSet(std::string key);
 
     void loadKeysInto(std::function<void(std::string key, std::string value)> callback);
     void clear();
@@ -57,7 +65,15 @@ public:
 
     // Key-Value Interface
     void setKeyValue(std::string key, std::string value);
+    void setKeyValue(std::string key, std::string value, std::string bucket);
+    void setKeyValue(std::string key, std::unordered_set<std::string> value);
+
     std::string getKeyValue(std::string key);
+    std::unique_ptr<std::unordered_set<std::string>> getKeyValueSet(std::string key);
+
+    // Query records functions
+    std::unique_ptr<IQueryResult> query(Query& query) const;
+    std::unique_ptr<IQueryResult> query(BucketQuery& query) const;
 
     // Management functions
     static const std::unique_ptr<IDatabase> createEmpty(std::string dbname);
