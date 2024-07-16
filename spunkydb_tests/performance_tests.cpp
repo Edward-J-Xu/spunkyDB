@@ -179,4 +179,82 @@ TEST_CASE("Measure basic performance", "[setKeyValue, getKeyValue]") {
         // 4. Tear down
         db->destroy();
     }
+
+    SECTION("Bucket query performance test - In-memory key-value store") {
+        std::string dbname("myemptydb");
+        std::unique_ptr<spunkydb::KeyValueStore> memoryStore = std::make_unique<spunkydbext::MemoryKeyValueStore>();
+        std::unique_ptr<spunkydb::IDatabase> db(spunkydb::SpunkyDB::createEmptyDB(dbname, memoryStore));
+
+        int total = 100000;
+        int every = 1000;
+        std::string bucket("my bucket");
+        std::unordered_set<std::string> keysInBuckets;
+
+        // 1. Pre-generate the keys and values in memory (so we don't skew the test)
+        std::unordered_map<std::string, std::string> keyValues;
+        for (int i = 0; i < total; i++) {
+            keyValues.emplace(std::to_string(i), std::to_string(i)); // C++11 uses std::forward
+            if (i % every == 0) {
+                keysInBuckets.insert(std::to_string(i));
+            }
+        }
+        std::cout << "Key size is max " << std::to_string(total - 1).length() << " bytes" << std::endl;
+
+        // 2. Store 100 000 key-value pairs (no overlap)
+        // Raw storage speed
+        std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+        long i = 0;
+        for (auto it = keyValues.begin(); it != keyValues.end(); it++) {
+            if (i % every == 0) {
+                db->setKeyValue(it->first, it->second, bucket);
+            } else {
+                db->setKeyValue(it->first, it->second);
+            }
+            ++i;
+        }
+        std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+        std::cout << "  " << keyValues.size() << " completed in "
+            << (std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() / 1000000.0)
+            << " seconds" << std::endl;
+        std::cout << "  "
+            << (keyValues.size() * 1000000.0 / std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())
+            << " requests per second" << std::endl;
+        std::cout << std::endl;
+
+        // 3. Retrieve 100 000 key-value pairs (no overlap)
+        // Raw retrieval speed
+        std::string aString("blank");
+        std::string& result(aString);
+        begin = std::chrono::steady_clock::now();
+        for (auto it = keysInBuckets.begin(); it != keysInBuckets.end(); it++) {
+            result = db->getKeyValue(*it);
+        }
+        end = std::chrono::steady_clock::now();
+        auto getTimeMicro = (std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() / 1000000.0);
+        std::cout << "  " << keysInBuckets.size() << " completed in "
+            << getTimeMicro
+            << " seconds" << std::endl;
+        std::cout << "  "
+            << (keysInBuckets.size() * 1000000.0 / std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())
+            << " requests per second" << std::endl;
+        
+        // 4. Query comparison
+        spunkydb::BucketQuery bq(bucket);
+        begin = std::chrono::steady_clock::now();
+        std::unique_ptr<spunkydb::IQueryResult> res = db->query(bq);
+        std::unique_ptr<std::unordered_set<std::string>> recordKeys(res->recordKeys());
+        end = std::chrono::steady_clock::now();
+        auto queryTimeMicro = (std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() / 1000000.0);
+        std::cout << "  " << recordKeys->size() << " completed in "
+            << queryTimeMicro
+            << " seconds" << std::endl;
+        std::cout << "  "
+            << (recordKeys->size() * 1000000.0 / std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count())
+            << " requests per second" << std::endl;
+        REQUIRE(recordKeys->size() == keysInBuckets.size());
+        REQUIRE(queryTimeMicro < getTimeMicro);
+
+        // 5. Tear down
+        db->destroy();
+    }
 }

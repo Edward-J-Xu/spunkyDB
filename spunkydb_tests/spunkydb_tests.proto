@@ -18,7 +18,8 @@ SOURCES += \
         dbmanagement-tests.cpp \
         hashing-tests.cpp \
         keyvalue-tests.cpp \
-        performance-tests.cpp
+        performance-tests.cpp \
+        query-tests.cpp
 
 # Include additional project-specific definitions
 include(../spunkydb/Defines.pri)
