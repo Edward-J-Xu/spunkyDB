@@ -56,14 +56,6 @@ void MemoryKeyValueStore::setKeyValue(std::string key, std::string value) {
     }
 }
 
-void MemoryKeyValueStore::setKeyValue(std::string key, std::string value, std::string bucket) {
-    setKeyValue(key, value);
-    if (mImpl->m_cachedStore) {
-        mImpl->m_cachedStore->get()->setKeyValue(key, value, bucket);
-    }
-    // Note: Bucket indexing implemented at DATABASE level, not kv store level
-}
-
 void MemoryKeyValueStore::setKeyValue(std::string key, std::unordered_set<std::string> value) {
     // Note: insert on unordered_map does NOT perform an insert if the key already exists
     mImpl->m_listStore.erase(key);

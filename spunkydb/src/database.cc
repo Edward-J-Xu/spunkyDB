@@ -34,6 +34,7 @@ public:
     // Query functions
     std::unique_ptr<IQueryResult> query(Query& query) const;
     std::unique_ptr<IQueryResult> query(BucketQuery& query) const;
+    void indexForBucket(std::string key, std::string bucket);
 
     // Management functions
     static const std::unique_ptr<IDatabase> createEmpty(std::string dbname);
@@ -92,7 +93,7 @@ const std::unique_ptr<IDatabase> EmbeddedDatabase::Impl::createEmpty(std::string
     return std::make_unique<EmbeddedDatabase::Impl>(dbname, dbfolder, kvStore);
 }
 
-const std::unique_ptr<IDatabase> EmbeddedDatabase::Impl::load(std::string dbname) {
+std::unique_ptr<IDatabase> EmbeddedDatabase::Impl::load(std::string dbname) {
     std::string basedir(".spunkydb");
     std::string dbfolder(basedir + "/" + dbname);
     return std::make_unique<EmbeddedDatabase::Impl>(dbname, dbfolder);
@@ -124,7 +125,10 @@ std::string EmbeddedDatabase::Impl::getKeyValue(std::string key) {
 
 void EmbeddedDatabase::Impl::setKeyValue(std::string key, std::string value, std::string bucket) {
     setKeyValue(key, value);
+    indexForBucket(key, bucket);
+}
 
+void EmbeddedDatabase::Impl::indexForBucket(std::string key, std::string bucket) {
     // Add to bucket index
     std::string idxKey("bucket::" + bucket);
     // query the key index
@@ -165,14 +169,14 @@ std::unique_ptr<IQueryResult> EmbeddedDatabase::Impl::query(BucketQuery& query) 
 
 
 // Embedded Database
-EmbeddedDatabase::EmbeddedDatabase(std::string dbname)
+EmbeddedDatabase::EmbeddedDatabase(std::string dbname, std::string fullpath)
     : m_impl(std::make_unique<EmbeddedDatabase::Impl>(dbname, fullpath)) {
     ;
 }
 
 EmbeddedDatabase::EmbeddedDatabase(std::string dbname, std::string fullpath,
                                    std::unique_ptr<KeyValueStore>& kvStore)
-    : mImpl(std::make_unique<EmbeddedDatabase::Impl>(dbname, fullpath, kvStore)) {
+    : m_impl(std::make_unique<EmbeddedDatabase::Impl>(dbname, fullpath, kvStore)) {
     ;
 }
 
@@ -188,7 +192,7 @@ const std::unique_ptr<IDatabase> EmbeddedDatabase::createEmpty(std::string dbnam
   return EmbeddedDatabase::Impl::createEmpty(dbname, kvStore);
 }
 
-const std::unique_ptr<IDatabase> EmbeddedDatabase::load(std::string dbname) {
+std::unique_ptr<IDatabase> EmbeddedDatabase::load(std::string dbname) {
     return EmbeddedDatabase::Impl::load(dbname);
 }
 

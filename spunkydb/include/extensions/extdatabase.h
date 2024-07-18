@@ -18,7 +18,6 @@ public:
 
     // Key-Value User Functions
     void setKeyValue(std::string key, std::string value);
-    void setKeyValue(std::string key, std::string value, std::string bucket);
     void setKeyValue(std::string key, std::unordered_set<std::string> value);
 
     std::string getKeyValue(std::string key);
@@ -40,7 +39,6 @@ public:
 
     // Key-Value User Functions
     void setKeyValue(std::string key, std::string value);
-    void setKeyValue(std::string key, std::string value, std::string bucket);
     void setKeyValue(std::string key, std::unordered_set<std::string> value);
 
     std::string getKeyValue(std::string key);
@@ -83,7 +81,7 @@ public:
 
     class Impl;
 private:
-    std::unique_ptr<Impl> mImpl;
+    std::unique_ptr<Impl> m_impl;
 };
 
 }

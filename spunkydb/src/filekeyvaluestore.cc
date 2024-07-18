@@ -40,11 +40,6 @@ FileKeyValueStore::setKeyValue(std::string key, std::string value) {
     os.close();
 }
 
-void FileKeyValueStore::setKeyValue(std::string key, std::string value, std::string bucket) {
-    setKeyValue(key, value);
-    // Note: Bucket indexing implemented at DATABASE level, not kv store level
-}
-
 void FileKeyValueStore::setKeyValue(std::string key, std::unordered_set<std::string> value) {
     // store in _string_set.kl file elements_num<length,value...>...
     std::ofstream os;
